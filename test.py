@@ -41,13 +41,10 @@ def select_all(table_name):
 
 # delete_data('users')
 # select_all('users')
-a = [1, 2, 3, 4, 5]
-for i in a:
-    if i == a[-1]:
-        print('end', i)
-    else:
-        print(i)
-
+one = 'a_b_c'
+two = one.split('_')[1] + one.split('_')[2]
+print(one)
+print(two)
 
 
 

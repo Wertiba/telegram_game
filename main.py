@@ -8,8 +8,7 @@ from icecream import ic
 from messages import All_messages as messages
 from config import *
 
-#create bot and my user id
-my_user_id = my_user_id
+#create bot
 bot = telebot.TeleBot(bot_token)
 #disable ic
 ic.disable()
@@ -83,26 +82,51 @@ class Enemy():
     def trade_functional(self, call):
         ic.enable()
         ic(user.health, user.power)
-        data = str(call.data).split('_')[1]
+        data = str(call.data).split('_')[1] + '_' + str(call.data).split('_')[2]
+        print(data)
 
-        if user.ballance - 5 >= 0:
-            user.ballance -= 5
-            if data == 'force':
-                user.power += 50
-
-            elif data == 'hill':
-                user.health += 50
-
-            elif data == 'key':
-                user.inventory.append('key')
+        #search object
+        for i in list_items:
+            if i.title == data:
+                obj = i
 
 
+        #upgrade atributes
+        if 'spell_' in obj.title:
+            if obj.title == 'spell_hill':
+                obj.effects(user.health, True, 50)
+
+            elif obj.title == 'spell_force':
+                obj.effects(user.power, True, 50)
 
 
-            bot.send_message(call.message.chat.id, 'Успешно преобретено. Чтобы вернуться в деревню жмите на кнопку выше')
+        #keys
+        elif 'key_' in obj.title:
+            obj.add_to_inventory()
 
-        else:
-            bot.send_message(call.message.chat.id, 'У вас не хватает денег!')
+
+
+
+
+
+        # if user.ballance - 5 >= 0:
+        #     user.ballance -= 5
+        #     if data == 'spell_force':
+        #         user.power += 50
+        #
+        #     elif data == 'spell_hill':
+        #         user.health += 50
+        #
+        #     elif data == 'key_magical':
+        #         user.inventory.append('key')
+
+
+
+
+        bot.send_message(call.message.chat.id, 'Успешно преобретено. Чтобы вернуться в деревню жмите на кнопку выше')
+
+        # else:
+        #     bot.send_message(call.message.chat.id, 'У вас не хватает денег!')
 
 
 
@@ -111,12 +135,34 @@ class Enemy():
         ic.disable()
 
 
+#create class for items
+class Item():
+    def __init__(self, name, num, title, price):
+        self.name = name
+        self.num = num
+        self.title = title
+        self.price = price
 
+
+
+    def add_to_inventory(self):
+        user.inventory.append(self.title)
+
+    def effects(self, atribute, pos_or_neg, count):
+        print(user.health, user.power, atribute, pos_or_neg, count)
+        if pos_or_neg == True:
+            atribute += count
+            print(atribute)
+
+        elif pos_or_neg == False:
+            atribute -= count
+
+        print(user.health, user.power, atribute)
 
 
 #create player's class
 class User():
-    def __init__(self, name, ip, is_already_reg, race, power, health, enemy, ballance, inventory):
+    def __init__(self, name, ip, is_already_reg, race, power, health, enemy, ballance, inventory, item):
         self.name = name
         self.ip = ip
         self.is_already_reg = is_already_reg
@@ -126,6 +172,7 @@ class User():
         self.enemy = enemy
         self.ballance = ballance
         self.inventory = inventory
+        self.item = item
 
     #func for view inventory
     def mine_inventory(self, message):
@@ -148,12 +195,7 @@ class User():
 
 
 
-
-
-
-
-
-user = User(None, None, None, None, None, None, None, None, [])
+user = User(None, None, None, None, None, None, None, None, [], None)
 
 
 #create races objects
@@ -169,9 +211,15 @@ orc = Enemy('орк','orc' , 150, 800, False, 3)
 undead = Enemy('нежить','undead' , 600, 200, False, 3)
 elf = Enemy('эльф','elf' , 400, 100, False, 1)
 
+#create items
+spell_force = Item('зелье силы', 0, 'spell_force', 5)
+spell_hill = Item('зелье силы', 1, 'spell_hill', 5)
+key_magical = Item('зелье силы', 2, 'key_magical', 5)
+
 #list with all objects
 list_races = [vikings, peoples, nigers, polars, fire_regiments]
 list_enemies = [human, orc, undead, elf]
+list_items = [spell_hill, spell_force, key_magical]
 
 
 #function for select all
@@ -301,9 +349,9 @@ def action_functional(data, message):
 
     elif action == 'trade':
         if user.enemy.is_tradyble == True:
-            btn3 = types.InlineKeyboardButton('Купить зелье силы', callback_data='buy_force_spell')
-            btn4 = types.InlineKeyboardButton('Купить зелье исцеления', callback_data='buy_hill_spell')
-            btn5 = types.InlineKeyboardButton('Купить магический ключ', callback_data='buy_key_magical')
+            btn3 = types.InlineKeyboardButton('Купить зелье силы', callback_data=f'buy_{spell_force.title}')
+            btn4 = types.InlineKeyboardButton('Купить зелье исцеления', callback_data=f'buy_{spell_hill.title}l')
+            btn5 = types.InlineKeyboardButton('Купить магический ключ', callback_data=f'buy_{key_magical.title}')
             murkup.row(btn3, btn4)
             murkup.row(btn5)
 
